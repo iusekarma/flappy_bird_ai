@@ -2,14 +2,15 @@ import pygame
 
 pygame.init()
 
-SPEED = 20
+SPEED = 60
+JUMP_ACCELERATION = 20
 
 class BirdGame:
     
     def __init__(self, w=640, h=480):
         self.w = w
         self.h = h
-        self.gravity = 9.8
+        self.gravity = 2
         
         self.display = pygame.display.set_mode((self.w,self.h))
         pygame.display.set_caption('BirdGame')
@@ -27,9 +28,18 @@ class BirdGame:
         game_over = False
         self.score += 1
         
+        self.y_velocity = min(self.y_velocity+self.gravity,10)
+        self.y += self.y_velocity
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.y_velocity = -JUMP_ACCELERATION
+                    
+        self.y = max(0,self.y)
+        self.y = min(self.y,self.h)
                 
         self._update_screen()
         self.clock.tick(SPEED)
@@ -37,7 +47,11 @@ class BirdGame:
         return game_over, self.score
     
     def _update_screen(self):
-        pass
+        self.display.fill((0,0,0))
+        
+        pygame.draw.circle(self.display,(255,255,255),(100,self.y),20)
+        
+        pygame.display.flip()
         
 if __name__ == '__main__':
     game = BirdGame()
