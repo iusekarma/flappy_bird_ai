@@ -3,16 +3,17 @@ import random
 
 pygame.init()
 
-SPEED = 60
+SPEED = 40
 JUMP_ACCELERATION = 15
 PIPE_SPEED = 7
+BIRD_X = 100
 
 class BirdGame:
     
     def __init__(self, w=640, h=480):
         self.w = w
         self.h = h
-        self.gravity = 1.5
+        self.gravity = 1.3
         
         self.display = pygame.display.set_mode((self.w,self.h))
         pygame.display.set_caption('BirdGame')
@@ -47,6 +48,7 @@ class BirdGame:
         # if pipe0 is out of screen pop it from list
         if self.pipes:
             if self.pipes[0][0] < 0:
+                self.score += 1
                 self.pipes.pop(0)
         
         for event in pygame.event.get():
@@ -60,7 +62,10 @@ class BirdGame:
                     
         self.y = max(0,self.y)
         self.y = min(self.y,self.h)
-                
+        
+        if self._is_collision() :
+            game_over = True
+        
         self._update_screen()
         self.clock.tick(SPEED)
 
@@ -76,14 +81,30 @@ class BirdGame:
             
         pygame.display.flip()
     
+    def _is_collision(self):
+        for pipe in self.pipes:
+            if (((BIRD_X - 20) > (pipe[0]-30)) and ((BIRD_X - 20) < (pipe[0]+30))) or (((BIRD_X + 20) > (pipe[0]-30)) and ((BIRD_X + 20) < (pipe[0]+30))):
+                if (((self.y - 20) > (pipe[1]-60)) and ((self.y - 20) < (pipe[1]+60))) and (((self.y + 20) > (pipe[1]-60)) and ((self.y + 20) < (pipe[1]+60))):
+                    return False
+                else:
+                    return True
+
+    # def _is_in_gap(self):
+    #     for pipe in self.pipes:
+    #         if (((BIRD_X - 20) > (pipe[0]-40)) and ((BIRD_X - 20) < (pipe[0]+40))) and (((BIRD_X + 20) > (pipe[0]-40)) and ((BIRD_X + 20) < (pipe[0]+40))):
+    #             if (((self.y - 20) > (pipe[1]-60)) and ((self.y - 20) < (pipe[1]+60))) and (((self.y + 20) > (pipe[1]-60)) and ((self.y + 20) < (pipe[1]+60))):
+    #                 return True
+    #             else:
+    #                 return False
+    
     def _spawn_pipe(self):
-        self.pipes.append([self.w,random.randint(0,self.h)])
+        self.pipes.append([self.w,random.randint(60,self.h-60)])
         
     def _draw_bird(self):
-        pygame.draw.circle(self.display,(255,255,255),(100,self.y),20)
+        pygame.draw.rect(self.display,(255,255,255),(BIRD_X-20,self.y-20,40,40))
         
     def _draw_pipe(self,pipe):
-        pygame.draw.rect(self.display,(0,255,0),(pipe[0]-30,pipe[1]-30,60,60))
+        pygame.draw.rect(self.display,(0,255,0),(pipe[0]-30,pipe[1]-60,60,120))
         
 if __name__ == '__main__':
     game = BirdGame()
@@ -91,8 +112,9 @@ if __name__ == '__main__':
     while True:
         game_over, score = game.play_step()
         if game_over:
+            print(score)
             break
     
-    print(game.frame_iteration)
+    # print(game.frame_iteration)
     pygame.quit()
     
