@@ -3,9 +3,9 @@ import random
 
 pygame.init()
 
-SPEED = 40
+SPEED = 30
 JUMP_ACCELERATION = 15
-PIPE_SPEED = 7
+PIPE_SPEED = 6
 BIRD_X = 100
 
 class BirdGame:
