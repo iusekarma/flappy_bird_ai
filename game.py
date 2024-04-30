@@ -17,10 +17,29 @@ class BirdGame:
         
         self.display = pygame.display.set_mode((self.w,self.h))
         pygame.display.set_caption('BirdGame')
+        # self.bird_image = pygame.image.load('assets/bluebird-midflap.png').convert_alpha()
         
         self.clock = pygame.time.Clock()
         self.pipes = []
         self.reset()
+
+        # Load bird images
+        self.bird_images = [
+            pygame.image.load('assets/bluebird-upflap.png').convert_alpha(),
+            pygame.image.load('assets/bluebird-midflap.png').convert_alpha(),
+            pygame.image.load('assets/bluebird-downflap.png').convert_alpha()
+        ]
+        self.bird_index = 1  # Start with the midflap image
+        self.flap_count = 0  # Counter to control the flapping speed
+
+        # Load background image
+        self.background_image = pygame.image.load('assets/background-day.png').convert()
+        self.background_rect = self.background_image.get_rect()
+        self.background_x = 0
+
+        # Load pipe images
+        # self.pipe_top_image = pygame.image.load('pipe_up.png').convert_alpha()
+        # self.pipe_bottom_image = pygame.image.load('pipe_bottom.png').convert_alpha()
         
     def reset(self):
         self.score = 0
@@ -57,8 +76,12 @@ class BirdGame:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     self.y_velocity = -JUMP_ACCELERATION
+                    self.flap_count = 15
                 elif event.key == pygame.K_a:
                     self._spawn_pipe()
+
+        
+        
                     
         self.y = max(0,self.y)
         self.y = min(self.y,self.h)
@@ -72,7 +95,17 @@ class BirdGame:
         return game_over, self.score
     
     def _update_screen(self):
-        self.display.fill((0,0,0))
+        # Draw background
+        self.display.blit(self.background_image, (self.background_x, 0))
+        self.display.blit(self.background_image, (self.background_x + self.w, 0))
+
+        # Move background
+        self.background_x -= PIPE_SPEED
+        if self.background_x <= -self.w:
+            self.background_x = 0
+
+
+        # self.display.fill((0,0,0))
         
         self._draw_bird()
         
@@ -101,7 +134,15 @@ class BirdGame:
         self.pipes.append([self.w,random.randint(60,self.h-60)])
         
     def _draw_bird(self):
-        pygame.draw.rect(self.display,(255,255,255),(BIRD_X-20,self.y-20,40,40))
+        # Flap effect logic
+        if self.flap_count > 0:
+            self.flap_count -= 1
+            if self.flap_count == 0:
+                self.bird_index = (self.bird_index + 1) % len(self.bird_images)
+
+        bird_image = self.bird_images[self.bird_index]
+        self.display.blit(bird_image, (BIRD_X - 20, self.y - 20))
+        # pygame.draw.rect(self.display,(255,255,255),(BIRD_X-20,self.y-20,40,40))
         
     def _draw_pipe(self,pipe):
         pygame.draw.rect(self.display,(0,255,0),(pipe[0]-30,pipe[1]-60,60,120))
