@@ -4,9 +4,13 @@ import random
 pygame.init()
 
 SPEED = 30
-JUMP_ACCELERATION = 15
-PIPE_SPEED = 6
+JUMP_ACCELERATION = 14
+PIPE_SPEED = 7
 BIRD_X = 100
+
+BIRD_SIZE = 40
+PIPE_GAP_Y = 160
+PIPE_GAP_X = 60
 
 class BirdGame:
     
@@ -116,19 +120,14 @@ class BirdGame:
     
     def _is_collision(self):
         for pipe in self.pipes:
-            if (((BIRD_X - 20) > (pipe[0]-30)) and ((BIRD_X - 20) < (pipe[0]+30))) or (((BIRD_X + 20) > (pipe[0]-30)) and ((BIRD_X + 20) < (pipe[0]+30))):
-                if (((self.y - 20) > (pipe[1]-60)) and ((self.y - 20) < (pipe[1]+60))) and (((self.y + 20) > (pipe[1]-60)) and ((self.y + 20) < (pipe[1]+60))):
+            if (((BIRD_X - (BIRD_SIZE//2)) > (pipe[0]-(PIPE_GAP_X//2))) and ((BIRD_X - (BIRD_SIZE//2)) < (pipe[0]+(PIPE_GAP_X//2)))) or\
+                (((BIRD_X + (BIRD_SIZE//2)) > (pipe[0]-(PIPE_GAP_X//2))) and ((BIRD_X + (BIRD_SIZE//2)) < (pipe[0]+(PIPE_GAP_X//2)))):
+                    
+                if (((self.y - (BIRD_SIZE//2)) > (pipe[1]-(PIPE_GAP_Y//2))) and ((self.y - (BIRD_SIZE//2)) < (pipe[1]+(PIPE_GAP_Y//2)))) and\
+                    (((self.y + (BIRD_SIZE//2)) > (pipe[1]-(PIPE_GAP_Y//2))) and ((self.y + (BIRD_SIZE//2)) < (pipe[1]+(PIPE_GAP_Y//2)))):
                     return False
                 else:
                     return True
-
-    # def _is_in_gap(self):
-    #     for pipe in self.pipes:
-    #         if (((BIRD_X - 20) > (pipe[0]-40)) and ((BIRD_X - 20) < (pipe[0]+40))) and (((BIRD_X + 20) > (pipe[0]-40)) and ((BIRD_X + 20) < (pipe[0]+40))):
-    #             if (((self.y - 20) > (pipe[1]-60)) and ((self.y - 20) < (pipe[1]+60))) and (((self.y + 20) > (pipe[1]-60)) and ((self.y + 20) < (pipe[1]+60))):
-    #                 return True
-    #             else:
-    #                 return False
     
     def _spawn_pipe(self):
         self.pipes.append([self.w,random.randint(60,self.h-60)])
@@ -141,11 +140,11 @@ class BirdGame:
                 self.bird_index = (self.bird_index + 1) % len(self.bird_images)
 
         bird_image = self.bird_images[self.bird_index]
-        self.display.blit(bird_image, (BIRD_X - 20, self.y - 20))
+        self.display.blit(bird_image, (BIRD_X - (BIRD_SIZE//2), self.y - (BIRD_SIZE//2)))
         # pygame.draw.rect(self.display,(255,255,255),(BIRD_X-20,self.y-20,40,40))
         
     def _draw_pipe(self,pipe):
-        pygame.draw.rect(self.display,(0,255,0),(pipe[0]-30,pipe[1]-60,60,120))
+        pygame.draw.rect(self.display,(0,255,0),(pipe[0]-(PIPE_GAP_X//2),pipe[1]-(PIPE_GAP_Y//2),PIPE_GAP_X,PIPE_GAP_Y))
         
 if __name__ == '__main__':
     game = BirdGame()
