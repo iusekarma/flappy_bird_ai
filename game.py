@@ -29,9 +29,9 @@ class BirdGame:
 
         # Load bird images
         self.bird_images = [
-            pygame.image.load('./assets/bluebird-upflap.png').convert_alpha(),
-            pygame.image.load('./assets/bluebird-midflap.png').convert_alpha(),
-            pygame.image.load('./assets/bluebird-downflap.png').convert_alpha()
+            pygame.image.load('assets/bluebird-upflap.png').convert_alpha(),
+            pygame.image.load('assets/bluebird-midflap.png').convert_alpha(),
+            pygame.image.load('assets/bluebird-downflap.png').convert_alpha()
         ]
         self.bird_index = 1  # Start with the midflap image
         self.flap_count = 0  # Counter to control the flapping speed
