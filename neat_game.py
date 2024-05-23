@@ -13,18 +13,17 @@ PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
-PIPE_GAP_Y = 160
-PIPE_GAP_X = 60
+PIPE_GAP_Y = 140
+PIPE_GAP_X = 52
 
 GEN = 0
 class Bird:
     
     def __init__(self, game):
-        self.y = 240
         self.game_over = False
         self.score = 0
         self.y_velocity = 0
-        self.y = 240
+        self.y = 210
         self.game = game
         self.bird_index = 1
         self.flap_count = 0
@@ -36,8 +35,7 @@ class Bird:
         self.y += self.y_velocity
         
         if self.game.pipes:
-            # if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2):
-            if self.game.pipes[0][0] < 1:
+            if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2) and self.game.pipes[0][0] > BIRD_X - (BIRD_SIZE//2) - PIPE_SPEED - 1:
                 self.score += 1
                 scored = True
         if action == 1:
@@ -74,9 +72,10 @@ class Bird:
         bird_image = self.game.bird_images[self.bird_index]
         self.game.display.blit(bird_image, (BIRD_X - (BIRD_SIZE // 2), self.y - (BIRD_SIZE // 2)))
 
+# 640,480
 class BirdGame:
     
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=560, h=420):
         self.w = w
         self.h = h
         self.gravity = 1.3
@@ -95,7 +94,10 @@ class BirdGame:
         ]
         self.bird_index = 1
         self.flap_count = 0
-
+        
+        self.pipe_up_image = pygame.image.load('assets/pipe-up.jpg')
+        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png')
+        
         self.background_image = pygame.image.load('assets/background-day.png').convert()
         self.background_rect = self.background_image.get_rect()
         self.background_x = 0
@@ -138,7 +140,9 @@ class BirdGame:
         self.pipes.append([self.w, random.randint(60, self.h - 60)])
 
     def _draw_pipe(self, pipe):
-        pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
+        # pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
+        self.display.blit(self.pipe_up_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2)-319))
+        self.display.blit(self.pipe_bottom_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] + (PIPE_GAP_Y // 2)))
 
 def eval_genomes(genomes, config):
     global GEN
