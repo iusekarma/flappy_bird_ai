@@ -95,10 +95,6 @@ class BirdGame:
         self.background_image = pygame.image.load('assets/background-day.png').convert()
         self.background_rect = self.background_image.get_rect()
         self.background_x = 0
-
-        self.pipe_top_image = pygame.image.load('assets/pipe-top.png').convert_alpha()
-        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png').convert_alpha()
-        
         
         self._spawn_pipe()
      
@@ -137,78 +133,68 @@ class BirdGame:
     def _spawn_pipe(self):
         self.pipes.append([self.w, random.randint(60, self.h - 60)])
 
-    # def _draw_pipe(self, pipe):
-    #     pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
-
     def _draw_pipe(self, pipe):
-        pipe_x = pipe[0]
-        pipe_y = pipe[1]
-        
-        top_pipe_rect = self.pipe_top_image.get_rect(midbottom=(pipe_x, pipe_y - PIPE_GAP_Y // 2))
-        bottom_pipe_rect = self.pipe_bottom_image.get_rect(midtop=(pipe_x, pipe_y + PIPE_GAP_Y // 2))
-        
-        self.display.blit(self.pipe_top_image, top_pipe_rect)
-        self.display.blit(self.pipe_bottom_image, bottom_pipe_rect)
+        pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
 
-def eval_genomes(genomes, config):
-    bird_game = BirdGame()
-    nets = []
-    birds = []
-    birds_score = []
-    ge = []
+# def eval_genomes(genomes, config):
+#     bird_game = BirdGame()
+#     nets = []
+#     birds = []
+#     birds_score = []
+#     ge = []
 
-    for genome_id, genome in genomes:
-        genome.fitness = 0
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        nets.append(net)
-        birds.append(Bird(game=bird_game))
-        birds_score.append(0)
-        ge.append(genome)
+#     for genome_id, genome in genomes:
+#         genome.fitness = 0
+#         net = neat.nn.FeedForwardNetwork.create(genome, config)
+#         nets.append(net)
+#         birds.append(Bird(game=bird_game))
+#         birds_score.append(0)
+#         ge.append(genome)
 
-    while len(birds) > 0:
-        bird_game.clock.tick(SPEED)
-        bird_game._update_screen()
-        bird_game.play_step()
-        for x, bird in enumerate(birds):
-            ge[x].fitness += 0.1
-            pipe_y = bird_game.h//2
-            pipe_x = bird_game.w
-            if bird_game.pipes:
-                pipe_y = bird_game.pipes[0][1] - bird.y
-                pipe_x = bird_game.pipes[0][0] - BIRD_X
-            output = nets[x].activate((bird.y, pipe_y, pipe_x))
-            action = 1 if output[0] > 0.5 else 0
-            game_over, score, scored = bird.play_step(action)
+#     while len(birds) > 0:
+#         bird_game.clock.tick(SPEED)
+#         bird_game._update_screen()
+#         bird_game.play_step()
+#         for x, bird in enumerate(birds):
+#             ge[x].fitness += 0.1
+#             pipe_y = bird_game.h//2
+#             pipe_x = bird_game.w
+#             if bird_game.pipes:
+#                 pipe_y = bird_game.pipes[0][1] - bird.y
+#                 pipe_x = bird_game.pipes[0][0] - BIRD_X
+#             output = nets[x].activate((bird.y, pipe_y, pipe_x))
+#             action = 1 if output[0] > 0.5 else 0
+#             game_over, score, scored = bird.play_step(action)
             
-            if scored:
-                ge[x].fitness += 1
+#             if scored:
+#                 ge[x].fitness += 1
 
-            if game_over:
-                ge[x].fitness -= 1
-                birds.pop(x)
-                nets.pop(x)
-                ge.pop(x)
-        draw_frame(game=bird_game,birds=birds)
+#             if game_over:
+#                 ge[x].fitness -= 1
+#                 birds.pop(x)
+#                 nets.pop(x)
+#                 ge.pop(x)
+#         draw_frame(game=bird_game,birds=birds)
         
 
-def draw_frame(game:BirdGame,birds:[Bird]):
-    game._update_screen()
-    for bird in birds:
-        bird._draw_bird()
-    pygame.display.flip()
+# def draw_frame(game:BirdGame,birds:[Bird]):
+#     game._update_screen()
+#     for bird in birds:
+#         bird._draw_bird()
+#     pygame.display.flip()
 
-def run(config_file):
-    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_file)
+# def run(config_file):
+#     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_file)
 
-    p = neat.Population(config)
+#     p = neat.Population(config)
 
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+#     p.add_reporter(neat.StdOutReporter(True))
+#     stats = neat.StatisticsReporter()
+#     p.add_reporter(stats)
 
-    winner = p.run(eval_genomes, 50)
+#     winner = p.run(eval_genomes, 50)
 
-if __name__ == "__main__":
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
-    run(config_path)
+# if __name__ == "__main__":
+#     local_dir = os.path.dirname(__file__)
+#     config_path = os.path.join(local_dir, "config-feedforward.txt")
+#     run(config_path)
