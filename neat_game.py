@@ -2,21 +2,35 @@ import pygame
 import random
 import neat
 import os
+import pickle
+import matplotlib.pyplot as plt
+from visualize import plot_stats
 
 pygame.init()
 
 FONT = pygame.font.Font('VT323-Regular.ttf',30)
 
-SPEED = 40
+SPEED = 25
 JUMP_ACCELERATION = 14
 PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
-PIPE_GAP_Y = 140
+PIPE_GAP_Y = 200
 PIPE_GAP_X = 52
 
 GEN = 0
+TOTAL_GEN = 10
+ENOUGH_SCORE = 20
+
+
+# Initialing lists to store scores and population for each generation for visualization
+generation_scores = []
+generation_population = []
+
+
+
+
 class Bird:
     
     def __init__(self, game):
@@ -102,8 +116,8 @@ class BirdGame:
         self.background_rect = self.background_image.get_rect()
         self.background_x = 0
 
-        self.pipe_top_image = pygame.image.load('assets/pipe-top.png').convert_alpha()
-        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png').convert_alpha()
+        # self.pipe_top_image = pygame.image.load('assets/pipe-top.png').convert_alpha()
+        # self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png').convert_alpha()
         
         
         self._spawn_pipe()
@@ -191,7 +205,14 @@ def eval_genomes(genomes, config):
                 birds.pop(x)
                 nets.pop(x)
                 ge.pop(x)
+
         draw_frame(game=bird_game,birds=birds)
+
+        # break if score gets large enough
+        if score > ENOUGH_SCORE:
+            print("Saving Best GENOME")
+            pickle.dump(nets[0],open("best_genome.pickle", "wb"))
+            break
         
 TEXT_COLOR = (255,255,255)
 
@@ -222,10 +243,21 @@ def run(config_file):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    
+    winner = p.run(eval_genomes, TOTAL_GEN)
+    print("Winner Genome:",winner)
 
-    winner = p.run(eval_genomes, 50)
+    #Visualization
+    plot_stats(stats, view=True, filename='avg_fitness.svg')
+
+    
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config-feedforward.txt")
     run(config_path)
+
+
+    
+    
+    

@@ -5,9 +5,9 @@ import os
 
 pygame.init()
 
-SPEED = 30
+SPEED = 20
 JUMP_ACCELERATION = 14
-PIPE_SPEED = 7
+PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
@@ -18,11 +18,10 @@ PIPE_GAP_X = 60
 class Bird:
     
     def __init__(self, game):
-        self.y = 240
         self.game_over = False
         self.score = 0
         self.y_velocity = 0
-        self.y = 240
+        self.y = 210
         self.game = game
         self.bird_index = 1
         self.flap_count = 0
@@ -34,7 +33,7 @@ class Bird:
         self.y += self.y_velocity
         
         if self.game.pipes:
-            if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2):
+            if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2) and self.game.pipes[0][0] > BIRD_X - (BIRD_SIZE//2) - PIPE_SPEED - 1:
                 self.score += 1
                 scored = True
         if action == 1:
@@ -71,9 +70,10 @@ class Bird:
         bird_image = self.game.bird_images[self.bird_index]
         self.game.display.blit(bird_image, (BIRD_X - (BIRD_SIZE // 2), self.y - (BIRD_SIZE // 2)))
 
+# 640,480
 class BirdGame:
     
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=560, h=420):
         self.w = w
         self.h = h
         self.gravity = 1.3
@@ -92,13 +92,16 @@ class BirdGame:
         ]
         self.bird_index = 1
         self.flap_count = 0
-
+        
+        self.pipe_up_image = pygame.image.load('assets/pipe-up.jpg')
+        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png')
+        
         self.background_image = pygame.image.load('assets/background-day.png').convert()
         self.background_rect = self.background_image.get_rect()
         self.background_x = 0
 
-        self.pipe_top_image = pygame.image.load('assets/pipe-top.png').convert_alpha()
-        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png').convert_alpha()
+        # self.pipe_top_image = pygame.image.load('assets/pipe-top.png').convert_alpha()
+        # self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png').convert_alpha()
         
         
         self._spawn_pipe()
@@ -119,6 +122,10 @@ class BirdGame:
 
         for index in range(len(self.pipes)):
             self.pipes[index][0] -= PIPE_SPEED
+        
+        if self.pipes:
+            if self.pipes[0][0] < 0:
+                self.pipes.pop(0)
 
     def _update_screen(self):
         self.display.blit(self.background_image, (self.background_x, 0))
@@ -130,10 +137,6 @@ class BirdGame:
 
         for pipe in self.pipes:
             self._draw_pipe(pipe)
-        
-        if self.pipes:
-            if self.pipes[0][0] < 0:
-                self.pipes.pop(0)
 
     def _spawn_pipe(self):
         self.pipes.append([self.w, random.randint(60, self.h - 60)])
@@ -142,14 +145,9 @@ class BirdGame:
     #     pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
 
     def _draw_pipe(self, pipe):
-        pipe_x = pipe[0]
-        pipe_y = pipe[1]
-        
-        top_pipe_rect = self.pipe_top_image.get_rect(midbottom=(pipe_x, pipe_y - PIPE_GAP_Y // 2))
-        bottom_pipe_rect = self.pipe_bottom_image.get_rect(midtop=(pipe_x, pipe_y + PIPE_GAP_Y // 2))
-        
-        self.display.blit(self.pipe_top_image, top_pipe_rect)
-        self.display.blit(self.pipe_bottom_image, bottom_pipe_rect)
+        # pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
+        self.display.blit(self.pipe_up_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2)-319))
+        self.display.blit(self.pipe_bottom_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] + (PIPE_GAP_Y // 2)))
 
 # if __name__ == '__main__':
 #     game = BirdGame()

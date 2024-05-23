@@ -1,3 +1,4 @@
 pygame
 neat-python
-
+matplotlib == 3.9.0
+pickle
