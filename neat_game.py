@@ -5,7 +5,7 @@ import os
 
 pygame.init()
 
-SPEED = 60
+SPEED = 40
 JUMP_ACCELERATION = 14
 PIPE_SPEED = 10
 BIRD_X = 100
@@ -125,6 +125,10 @@ class BirdGame:
 
         for pipe in self.pipes:
             self._draw_pipe(pipe)
+        
+        if self.pipes:
+            if self.pipes[0][0] < 0:
+                self.pipes.pop(0)
 
     def _spawn_pipe(self):
         self.pipes.append([self.w, random.randint(60, self.h - 60)])
