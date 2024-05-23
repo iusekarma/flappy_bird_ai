@@ -5,23 +5,25 @@ import os
 
 pygame.init()
 
+FONT = pygame.font.Font('VT323-Regular.ttf',30)
+
 SPEED = 40
 JUMP_ACCELERATION = 14
 PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
-PIPE_GAP_Y = 160
-PIPE_GAP_X = 60
+PIPE_GAP_Y = 140
+PIPE_GAP_X = 52
 
+GEN = 0
 class Bird:
     
     def __init__(self, game):
-        self.y = 240
         self.game_over = False
         self.score = 0
         self.y_velocity = 0
-        self.y = 240
+        self.y = 210
         self.game = game
         self.bird_index = 1
         self.flap_count = 0
@@ -33,7 +35,7 @@ class Bird:
         self.y += self.y_velocity
         
         if self.game.pipes:
-            if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2):
+            if self.game.pipes[0][0] < BIRD_X - (BIRD_SIZE//2) and self.game.pipes[0][0] > BIRD_X - (BIRD_SIZE//2) - PIPE_SPEED - 1:
                 self.score += 1
                 scored = True
         if action == 1:
@@ -70,9 +72,10 @@ class Bird:
         bird_image = self.game.bird_images[self.bird_index]
         self.game.display.blit(bird_image, (BIRD_X - (BIRD_SIZE // 2), self.y - (BIRD_SIZE // 2)))
 
+# 640,480
 class BirdGame:
     
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=560, h=420):
         self.w = w
         self.h = h
         self.gravity = 1.3
@@ -91,7 +94,10 @@ class BirdGame:
         ]
         self.bird_index = 1
         self.flap_count = 0
-
+        
+        self.pipe_up_image = pygame.image.load('assets/pipe-up.jpg')
+        self.pipe_bottom_image = pygame.image.load('assets/pipe-bottom.png')
+        
         self.background_image = pygame.image.load('assets/background-day.png').convert()
         self.background_rect = self.background_image.get_rect()
         self.background_x = 0
@@ -118,6 +124,10 @@ class BirdGame:
 
         for index in range(len(self.pipes)):
             self.pipes[index][0] -= PIPE_SPEED
+        
+        if self.pipes:
+            if self.pipes[0][0] < 0:
+                self.pipes.pop(0)
 
     def _update_screen(self):
         self.display.blit(self.background_image, (self.background_x, 0))
@@ -129,10 +139,6 @@ class BirdGame:
 
         for pipe in self.pipes:
             self._draw_pipe(pipe)
-        
-        if self.pipes:
-            if self.pipes[0][0] < 0:
-                self.pipes.pop(0)
 
     def _spawn_pipe(self):
         self.pipes.append([self.w, random.randint(60, self.h - 60)])
@@ -141,16 +147,13 @@ class BirdGame:
     #     pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
 
     def _draw_pipe(self, pipe):
-        pipe_x = pipe[0]
-        pipe_y = pipe[1]
-        
-        top_pipe_rect = self.pipe_top_image.get_rect(midbottom=(pipe_x, pipe_y - PIPE_GAP_Y // 2))
-        bottom_pipe_rect = self.pipe_bottom_image.get_rect(midtop=(pipe_x, pipe_y + PIPE_GAP_Y // 2))
-        
-        self.display.blit(self.pipe_top_image, top_pipe_rect)
-        self.display.blit(self.pipe_bottom_image, bottom_pipe_rect)
+        # pygame.draw.rect(self.display, (0, 255, 0), (pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2), PIPE_GAP_X, PIPE_GAP_Y))
+        self.display.blit(self.pipe_up_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2)-319))
+        self.display.blit(self.pipe_bottom_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] + (PIPE_GAP_Y // 2)))
 
 def eval_genomes(genomes, config):
+    global GEN
+    GEN += 1
     bird_game = BirdGame()
     nets = []
     birds = []
@@ -190,11 +193,25 @@ def eval_genomes(genomes, config):
                 ge.pop(x)
         draw_frame(game=bird_game,birds=birds)
         
+TEXT_COLOR = (255,255,255)
 
 def draw_frame(game:BirdGame,birds:[Bird]):
+    score = 0
+    alive = len(birds)
     game._update_screen()
     for bird in birds:
         bird._draw_bird()
+        score = max(score,bird.score)
+        
+    pygame.draw.rect(game.display,(0,0,0),(0,0,game.w,32))
+    
+    gen_text = FONT.render(f'Generation:{GEN}',True,TEXT_COLOR)
+    game.display.blit(gen_text,(5,1))
+    alive_text = FONT.render(f'Alive:{alive}',True,TEXT_COLOR)
+    game.display.blit(alive_text,((game.w//2)-(alive_text.get_width()//2),1))
+    score_text = FONT.render(f'Score:{score}',True,TEXT_COLOR)
+    game.display.blit(score_text,(game.w-score_text.get_width()-5,1))
+    
     pygame.display.flip()
 
 def run(config_file):
