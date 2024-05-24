@@ -2,33 +2,17 @@ import pygame
 import random
 import neat
 import os
-import pickle
-import matplotlib.pyplot as plt
-from visualize import plot_stats
 
 pygame.init()
 
-FONT = pygame.font.Font('VT323-Regular.ttf',30)
-
-SPEED = 25
+SPEED = 20
 JUMP_ACCELERATION = 14
 PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
-PIPE_GAP_Y = 200
-PIPE_GAP_X = 52
-
-GEN = 0
-TOTAL_GEN = 10
-ENOUGH_SCORE = 20
-
-
-# Initialing lists to store scores and population for each generation for visualization
-generation_scores = []
-generation_population = []
-
-
+PIPE_GAP_Y = 160
+PIPE_GAP_X = 60
 
 
 class Bird:
@@ -165,99 +149,41 @@ class BirdGame:
         self.display.blit(self.pipe_up_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] - (PIPE_GAP_Y // 2)-319))
         self.display.blit(self.pipe_bottom_image,(pipe[0] - (PIPE_GAP_X // 2), pipe[1] + (PIPE_GAP_Y // 2)))
 
-def eval_genomes(genomes, config):
-    global GEN
-    GEN += 1
+# if __name__ == '__main__':
+#     game = BirdGame()
+    
+#     while True:
+#         game_over, score = game.play_step()
+#         if game_over:
+#             print(score)
+#             break
+    
+#     # print(game.frame_iteration)
+#     pygame.quit()
+
+if __name__ == '__main__':
     bird_game = BirdGame()
-    nets = []
-    birds = []
-    birds_score = []
-    ge = []
+    bird = Bird(game = bird_game)
 
-    for genome_id, genome in genomes:
-        genome.fitness = 0
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        nets.append(net)
-        birds.append(Bird(game=bird_game))
-        birds_score.append(0)
-        ge.append(genome)
-
-    while len(birds) > 0:
+    running = True
+    while running:
         bird_game.clock.tick(SPEED)
         bird_game._update_screen()
         bird_game.play_step()
-        for x, bird in enumerate(birds):
-            ge[x].fitness += 0.1
-            pipe_y = bird_game.h//2
-            pipe_x = bird_game.w
-            if bird_game.pipes:
-                pipe_y = bird_game.pipes[0][1] - bird.y
-                pipe_x = bird_game.pipes[0][0] - BIRD_X
-            output = nets[x].activate((bird.y, pipe_y, pipe_x))
-            action = 1 if output[0] > 0.5 else 0
-            game_over, score, scored = bird.play_step(action)
-            
-            if scored:
-                ge[x].fitness += 1
 
-            if game_over:
-                ge[x].fitness -= 1
-                birds.pop(x)
-                nets.pop(x)
-                ge.pop(x)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    bird.play_step(action=1)
 
-        draw_frame(game=bird_game,birds=birds)
-
-        # break if score gets large enough
-        if score > ENOUGH_SCORE:
-            print("Saving Best GENOME")
-            pickle.dump(nets[0],open("best_genome.pickle", "wb"))
-            break
-        
-TEXT_COLOR = (255,255,255)
-
-def draw_frame(game:BirdGame,birds:[Bird]):
-    score = 0
-    alive = len(birds)
-    game._update_screen()
-    for bird in birds:
+        game_over, score, scored = bird.play_step(action=0)
         bird._draw_bird()
-        score = max(score,bird.score)
-        
-    pygame.draw.rect(game.display,(0,0,0),(0,0,game.w,32))
-    
-    gen_text = FONT.render(f'Generation:{GEN}',True,TEXT_COLOR)
-    game.display.blit(gen_text,(5,1))
-    alive_text = FONT.render(f'Alive:{alive}',True,TEXT_COLOR)
-    game.display.blit(alive_text,((game.w//2)-(alive_text.get_width()//2),1))
-    score_text = FONT.render(f'Score:{score}',True,TEXT_COLOR)
-    game.display.blit(score_text,(game.w-score_text.get_width()-5,1))
-    
-    pygame.display.flip()
+        pygame.display.flip()
 
-def run(config_file):
-    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_file)
+        if game_over:
+            print("Score: ", score)
+            break
 
-    p = neat.Population(config)
-
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-    
-    winner = p.run(eval_genomes, TOTAL_GEN)
-    print("Winner Genome:",winner)
-
-    #Visualization
-    plot_stats(stats, view=True, filename='avg_fitness.svg')
-
-    
-
-if __name__ == "__main__":
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
-    run(config_path)
-
-
-    
-    
-    
+    pygame.quit()
