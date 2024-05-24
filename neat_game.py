@@ -10,17 +10,17 @@ pygame.init()
 
 FONT = pygame.font.Font('VT323-Regular.ttf',30)
 
-SPEED = 25
+SPEED = 60
 JUMP_ACCELERATION = 14
 PIPE_SPEED = 10
 BIRD_X = 100
 
 BIRD_SIZE = 40
-PIPE_GAP_Y = 200
+PIPE_GAP_Y = 160
 PIPE_GAP_X = 52
 
 GEN = 0
-TOTAL_GEN = 10
+TOTAL_GEN = 100
 ENOUGH_SCORE = 20
 
 
@@ -184,15 +184,30 @@ def eval_genomes(genomes, config):
 
     while len(birds) > 0:
         bird_game.clock.tick(SPEED)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                stats = neat.StatisticsReporter()
+                plot_stats(stats, view=True, filename='avg_fitness.svg')
+                pygame.quit()
+                quit()
+                break
+        
         bird_game._update_screen()
         bird_game.play_step()
         for x, bird in enumerate(birds):
             ge[x].fitness += 0.1
-            pipe_y = bird_game.h//2
-            pipe_x = bird_game.w
+            # pipe_y = bird_game.h//2
+            # pipe_x = bird_game.w
+            # if bird_game.pipes:
+            #     pipe_y = bird_game.pipes[0][1] - bird.y
+            #     pipe_x = bird_game.pipes[0][0] - BIRD_X
+            # output = nets[x].activate((bird.y, pipe_y, pipe_x))
+            pipe_y = (bird_game.h//2) - (PIPE_GAP_X//2)
+            pipe_x = (bird_game.h//2) + (PIPE_GAP_Y//2)
             if bird_game.pipes:
-                pipe_y = bird_game.pipes[0][1] - bird.y
-                pipe_x = bird_game.pipes[0][0] - BIRD_X
+                pipe_y = bird_game.pipes[0][1] - (PIPE_GAP_X//2)
+                pipe_x = bird_game.pipes[0][1] + (PIPE_GAP_X//2)
             output = nets[x].activate((bird.y, pipe_y, pipe_x))
             action = 1 if output[0] > 0.5 else 0
             game_over, score, scored = bird.play_step(action)
@@ -209,10 +224,10 @@ def eval_genomes(genomes, config):
         draw_frame(game=bird_game,birds=birds)
 
         # break if score gets large enough
-        if score > ENOUGH_SCORE:
-            print("Saving Best GENOME")
-            pickle.dump(nets[0],open("best_genome.pickle", "wb"))
-            break
+        # if score > ENOUGH_SCORE:
+        #     print("Saving Best GENOME")
+        #     pickle.dump(nets[0],open("best_genome.pickle", "wb"))
+        #     break
         
 TEXT_COLOR = (255,255,255)
 
@@ -256,8 +271,3 @@ if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config-feedforward.txt")
     run(config_path)
-
-
-    
-    
-    
